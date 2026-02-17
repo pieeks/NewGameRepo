@@ -1,6 +1,0 @@
-[gd_scene format=3 uid="uid://8c5ojwtr0l73"]
-
-[ext_resource type="Script" uid="uid://bxyfox47laj0s" path="res://scripts/states/state_manager.gd" id="1_lravm"]
-
-[node name="StateController" type="Node2D" unique_id=278793159]
-script = ExtResource("1_lravm")
