@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://dpv175xcbqgya"]
+
+[ext_resource type="Script" uid="uid://ctyu7jfq0a810" path="res://scripts/lobby.gd" id="1_uxvnl"]
+
+[node name="Lobby" type="Control" unique_id=1900723551]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_right = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_uxvnl")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=202629242]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=692154486]
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=2084023036]
+layout_mode = 2
+text = "Start"
+
+[node name="JoinButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1456382268]
+layout_mode = 2
+text = "Beitritt"
+
+[node name="LeaveButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1057468006]
+layout_mode = 2
+text = "Leave"
+
+[node name="StatusButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=510120590]
+layout_mode = 2
+text = "Test Status"
+
+[connection signal="button_down" from="CenterContainer/VBoxContainer/StartButton" to="." method="_on_start_button_button_down"]
+[connection signal="button_down" from="CenterContainer/VBoxContainer/JoinButton" to="." method="_on_join_button_button_down"]
+[connection signal="button_down" from="CenterContainer/VBoxContainer/LeaveButton" to="." method="_on_leave_button_button_down"]
+[connection signal="button_down" from="CenterContainer/VBoxContainer/StatusButton" to="." method="_on_status_button_button_down"]

@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://bpv5w7cpt1i77"]
+
+[ext_resource type="Texture2D" uid="uid://c068e6hmd8c0d" path="res://icon.svg" id="1_3x35j"]
+[ext_resource type="Script" uid="uid://dpm18go8i0gd0" path="res://scripts/character.gd" id="1_6k5wm"]
+[ext_resource type="PackedScene" uid="uid://d4b5qv5atlkhq" path="res://scene/movementController.tscn" id="2_d7vt2"]
+[ext_resource type="PackedScene" uid="uid://8c5ojwtr0l73" path="res://scene/stateController.tscn" id="3_6k5wm"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xo3ru"]
+size = Vector2(127, 128)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_hjaqi"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:velocity")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
+[node name="Character" type="CharacterBody2D" unique_id=2123511907]
+collision_mask = 0
+script = ExtResource("1_6k5wm")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1125211716]
+texture = ExtResource("1_3x35j")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=253001767]
+position = Vector2(0.5, -1)
+shape = SubResource("RectangleShape2D_xo3ru")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1480388058]
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1327976104]
+replication_config = SubResource("SceneReplicationConfig_hjaqi")
+
+[node name="MovementController" parent="." unique_id=1430682091 instance=ExtResource("2_d7vt2")]
+
+[node name="StateController" parent="." unique_id=278793159 instance=ExtResource("3_6k5wm")]

@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://d4b5qv5atlkhq"]
+
+[ext_resource type="Script" uid="uid://dk3rbgwjkpvf2" path="res://scripts/movement/movement_controller.gd" id="1_7v85h"]
+[ext_resource type="Script" uid="uid://cbrno18lgueqg" path="res://scripts/movement/player_movement.gd" id="2_3u668"]
+[ext_resource type="Script" uid="uid://csdr0xfwcr1um" path="res://scripts/movement/ai_movement.gd" id="3_sif1x"]
+
+[node name="MovementController" type="Node2D" unique_id=1430682091]
+script = ExtResource("1_7v85h")
+
+[node name="PlayerMovement" type="Node" parent="." unique_id=887666361]
+script = ExtResource("2_3u668")
+
+[node name="AIMovement" type="Node" parent="." unique_id=959611370]
+script = ExtResource("3_sif1x")
