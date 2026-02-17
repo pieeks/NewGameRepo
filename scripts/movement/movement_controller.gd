@@ -17,6 +17,3 @@ func _physics_process(delta: float) -> void:
 		player_movement.process_movement(character, delta)
 	elif current_type == ControllerType.AI:
 		ai_movement.process_movement(character, delta)
-
-func test() -> void:
-	pass
