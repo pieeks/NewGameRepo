@@ -1,0 +1,23 @@
+ [gd_scene format=3]
+
+ [ext_resource type="Texture2D" path="res://icon.svg" id="1_icon"]
+
+ [node name="CharacterVisuals" type="Node2D"]
+
+ [node name="Hair" type="Sprite2D" parent="."]
+
+ [node name="Head" type="Sprite2D" parent="."]
+
+ [node name="Body" type="Sprite2D" parent="."]
+ texture = ExtResource("1_icon")
+
+ [node name="Waist" type="Sprite2D" parent="."]
+
+ [node name="Hands" type="Sprite2D" parent="."]
+
+ [node name="Legs" type="Sprite2D" parent="."]
+
+ [node name="Boots" type="Sprite2D" parent="."]
+
+ [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
