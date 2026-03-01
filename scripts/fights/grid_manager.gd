@@ -17,16 +17,17 @@ func _ready() -> void:
 
 func setup_grid() -> void:
 	astar.clear()
-	var points_dict = {} #Hilfsspeicher: Vector2i(x, y) -> ID
-	
+	var points_dict = {} # Hilfsspeicher: Vector2i(x, y) -> ID
 	var id = 0
 	
+	# 1. PUNKTE ERSTELLEN
 	for y in height:
 		for x in width:
 			var grid_pos = Vector2i(x, y)
+			# Der Faktor 0.75 sorgt dafür, dass die Waben ineinandergreifen
 			var pos = Vector2(x * spacing, y * spacing * 0.75)
 			
-			#Versatz für jede ungerade Reihe
+			# Versatz für jede ungerade Reihe (y = 1, 3, 5...) nach RECHTS
 			if y % 2 == 1:
 				pos.x += spacing / 2
 				
@@ -34,31 +35,31 @@ func setup_grid() -> void:
 			points_dict[grid_pos] = id
 			id += 1
 			
-	
+	# 2. VERBINDUNGEN ERSTELLEN
 	for y in height:
 		for x in width:
 			var current_id = points_dict[Vector2i(x, y)]
 			var neighbor_coords = []
 			
-			# Die 6 Nachbarn eines Hexagons hängen davon ab, ob die Reihe gerade/ungerade ist
-			if y % 2 == 0: # Gerade Reihe
+			# KORREKTUR: Die schrägen Nachbarn basierend auf deinem Versatz-System
+			if y % 2 == 0: # GERADE REIHE (y=0, 2...)
+				neighbor_coords = [
+					Vector2i(x, y-1), Vector2i(x-1, y-1), # Oben (Rechts & Links)
+					Vector2i(x-1, y), Vector2i(x+1, y),     # Direkt Links & Rechts
+					Vector2i(x, y+1), Vector2i(x-1, y+1)  # Unten (Rechts & Links)
+				]
+			else: # UNGERADE REIHE (y=1, 3...)
 				neighbor_coords = [
 					Vector2i(x, y-1), Vector2i(x+1, y-1), # Oben
 					Vector2i(x-1, y), Vector2i(x+1, y),     # Seiten
 					Vector2i(x, y+1), Vector2i(x+1, y+1)  # Unten
 				]
-			else: # Ungerade Reihe
-				neighbor_coords = [
-					Vector2i(x-1, y-1), Vector2i(x, y-1),
-					Vector2i(x-1, y), Vector2i(x+1, y),
-					Vector2i(x-1, y+1), Vector2i(x, y+1)
-				]
 			
 			for n_coord in neighbor_coords:
 				if points_dict.has(n_coord):
+					# connect_points ist standardmäßig bidirektional
 					astar.connect_points(current_id, points_dict[n_coord])
 	
-	##Verbindungen erstellen
 	queue_redraw()
 
 
@@ -70,6 +71,10 @@ func _draw() -> void:
 	for id in astar.get_point_ids():
 		var pos = astar.get_point_position(id)
 		draw_circle(pos, 3.0, Color.CYAN)
+		
+		for connection_id in astar.get_point_connections(id):
+			var target_pos = astar.get_point_position(connection_id)
+			draw_line(pos, target_pos, Color(1,1,1,0.1), 1.0)
 
 
 func get_action_path(start_world_pos: Vector2, target_world_pos: Vector2) -> PackedVector2Array:
