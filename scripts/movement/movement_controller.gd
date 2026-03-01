@@ -1,10 +1,11 @@
 extends Node
 
-enum ControllerType {PLAYER, AI}
+enum ControllerType {PLAYER, PATH, GRID}
 
 @export var current_type : ControllerType
 @onready var direct_movement: Node = $DirectMovement
-@onready var ai_movement: Node = $AIMovement
+@onready var path_movement: Node = $PathMovement
+@onready var grid_movement: Node = $GridMovement
 @onready var character: CharacterBody2D = get_parent()
 
 func _physics_process(delta: float) -> void:
@@ -15,5 +16,7 @@ func _physics_process(delta: float) -> void:
 	
 	if current_type == ControllerType.PLAYER:
 		direct_movement.process_movement(character, delta)
-	elif current_type == ControllerType.AI:
-		ai_movement.process_movement(character, delta)
+	elif current_type == ControllerType.PATH:
+		path_movement.process_movement(character, delta)
+	elif current_type == ControllerType.GRID:
+		grid_movement.process_movement(character, delta)

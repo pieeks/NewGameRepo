@@ -1,29 +1,30 @@
-extends Node2D
+extends Node 
 
 @onready var character: CharacterBody2D = get_parent()
 
-var current_state
+var current_state: State 
 var states: Dictionary = {}
 
-
 func _ready() -> void:
-	# Alle Child-Nodes, die CharacterState sind, registrieren
+	# Alle Child-Nodes durchgehen und typsicher registrieren
 	for child in get_children():
-		# child soll von state.gd erben, aber wir verwenden hier
-		# keine strikte Typprüfung, um Parse-Fehler zu vermeiden.
-		if "state_name" in child:
-			var state = child
-			if state.state_name == StringName():
-				state.state_name = StringName(state.name)
+		# Wir prüfen, ob der Node wirklich von unserer state.gd Klasse erbt
+		if child is State:
+			var state_node = child as State
 			
-			states[state.state_name] = state
-			state.character = character
-			state.state_controller = self
+			# Falls du im Editor keinen Namen vergeben hast, nehmen wir den Node-Namen
+			if state_node.state_name == StringName():
+				state_node.state_name = StringName(state_node.name)
+			
+			states[state_node.state_name] = state_node
+			
+			# Dem State sagen, wer sein Chef und wer sein Körper ist
+			state_node.character = character
+			state_node.state_controller = self
 	
-	# Debug: Übersicht, welche States registriert wurden.
 	print("StateManager: registered states = ", states.keys())
 	
-	# Standard-Startzustand: "Idle", falls vorhanden
+	# Standard-Startzustand aufrufen
 	if states.has(&"Idle"):
 		_change_state(&"Idle")
 	elif states.size() > 0:
@@ -32,37 +33,23 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	# Nur im Multiplayer laufen lassen (Singleplayer = Host hat auch einen Peer).
-	if not multiplayer.has_multiplayer_peer():
-		return
-	# Im Multiplayer: nur die Authority darf den State/Animation steuern.
-	if not character.is_multiplayer_authority():
+	if not multiplayer.has_multiplayer_peer() or not character.is_multiplayer_authority():
 		return
 	
-	# Bestimme gewünschten State anhand des Charakter-Zustands (hier: Geschwindigkeit)
-	var speed: float = character.velocity.length()
-	var desired_state: StringName = &"Idle"
-	
-	if speed > 0.1:
-		desired_state = &"Move"
-	
-
-	if current_state == null or current_state.state_name != desired_state:
-		print("StateManager: changing state on authority=", character.is_multiplayer_authority(),
-			" from=", current_state.state_name if current_state else "null",
-			" to=", desired_state)
-		_change_state(desired_state)
-	
+	# 2. Pure Delegation: Der Manager misst keine Geschwindigkeit mehr!
+	# Er ruft einfach nur den aktiven State auf und lässt ihn die Arbeit machen.
 	if current_state:
 		current_state.physics_update(delta)
 
 
+# Diese Funktion rufen die States (Arbeiter) auf, wenn sie fertig sind
 func request_state_change(target_state_name: StringName) -> void:
 	_change_state(target_state_name)
 
 
 func _change_state(target_state_name: StringName) -> void:
 	if not states.has(target_state_name):
+		push_warning("StateManager: State '" + str(target_state_name) + "' existiert nicht!")
 		return
 	
 	var new_state = states[target_state_name]
@@ -71,8 +58,14 @@ func _change_state(target_state_name: StringName) -> void:
 	if current_state == new_state:
 		return
 	
+	# 1. Dem alten State sagen, dass er aufräumen soll
 	if current_state:
 		current_state.exit(new_state)
 	
 	current_state = new_state
+	
+	# 2. Dem neuen State sagen, dass seine Schicht beginnt
 	current_state.enter(previous_state)
+	
+	# Optionaler Debug-Print, um Wechsel im Auge zu behalten
+	# print("State gewechselt zu: ", current_state.state_name)
