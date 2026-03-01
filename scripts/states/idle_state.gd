@@ -8,7 +8,7 @@ func _ready() -> void:
 
 func enter(previous_state) -> void:
 	if character:
-		character.play_animation("idle")
+		character.net_anim_name = &"idle"
 
 
 func physics_update(_delta: float) -> void:

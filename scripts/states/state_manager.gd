@@ -20,6 +20,9 @@ func _ready() -> void:
 			state.character = character
 			state.state_controller = self
 	
+	# Debug: Übersicht, welche States registriert wurden.
+	print("StateManager: registered states = ", states.keys())
+	
 	# Standard-Startzustand: "Idle", falls vorhanden
 	if states.has(&"Idle"):
 		_change_state(&"Idle")
@@ -29,8 +32,10 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Nur im Multiplayer laufen lassen (Singleplayer = Host hat auch einen Peer).
 	if not multiplayer.has_multiplayer_peer():
 		return
+	# Im Multiplayer: nur die Authority darf den State/Animation steuern.
 	if not character.is_multiplayer_authority():
 		return
 	
@@ -41,7 +46,11 @@ func _physics_process(delta: float) -> void:
 	if speed > 0.1:
 		desired_state = &"Move"
 	
+
 	if current_state == null or current_state.state_name != desired_state:
+		print("StateManager: changing state on authority=", character.is_multiplayer_authority(),
+			" from=", current_state.state_name if current_state else "null",
+			" to=", desired_state)
 		_change_state(desired_state)
 	
 	if current_state:

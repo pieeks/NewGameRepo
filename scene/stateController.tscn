@@ -1,6 +1,14 @@
 [gd_scene format=3 uid="uid://8c5ojwtr0l73"]
 
 [ext_resource type="Script" uid="uid://bxyfox47laj0s" path="res://scripts/states/state_manager.gd" id="1_lravm"]
+[ext_resource type="Script" path="res://scripts/states/idle_state.gd" id="2_idle"]
+[ext_resource type="Script" path="res://scripts/states/move_state.gd" id="3_move"]
 
 [node name="StateController" type="Node2D" unique_id=278793159]
 script = ExtResource("1_lravm")
+
+[node name="IdleState" type="Node" parent="."]
+script = ExtResource("2_idle")
+
+[node name="MoveState" type="Node" parent="."]
+script = ExtResource("3_move")

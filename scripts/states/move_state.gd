@@ -35,4 +35,5 @@ func _update_animation() -> void:
 		# Vertikal dominiert
 		anim = "run_down" if v.y >= 0.0 else "run_up"
 	
-	character.play_animation(anim)
+	# Visualen Netz-Animationszustand setzen; Character synchronisiert und spielt lokal ab.
+	character.net_anim_name = StringName(anim)
