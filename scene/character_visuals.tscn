@@ -1,0 +1,127 @@
+[gd_scene format=3 uid="uid://4edfqg1bhdcr"]
+
+[ext_resource type="Texture2D" uid="uid://c068e6hmd8c0d" path="res://icon.svg" id="1_icon"]
+
+[sub_resource type="Animation" id="Animation_qlwui"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Model:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_q8tae"]
+resource_name = "idle"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Model:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.03333336),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.48620003, 0.9703203, 2.015, 0.7294118)]
+}
+
+[sub_resource type="Animation" id="Animation_tngj6"]
+resource_name = "run_down"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Model:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.06666667),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.36861527, 0.29478434, 1.3580494, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_jg43a"]
+resource_name = "run_left"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Model:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.033333335),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.15975991, 0.722106, 0.639065, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_osfo6"]
+resource_name = "run_right"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Model:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.06666667),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1.1146761, 0.10572844, 0.6237673, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_d146q"]
+resource_name = "run_up"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Model:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.06666667),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.9672555, 0.7961138, 0.22918937, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_tngj6"]
+_data = {
+&"RESET": SubResource("Animation_qlwui"),
+&"idle": SubResource("Animation_q8tae"),
+&"run_down": SubResource("Animation_tngj6"),
+&"run_left": SubResource("Animation_jg43a"),
+&"run_right": SubResource("Animation_osfo6"),
+&"run_up": SubResource("Animation_d146q")
+}
+
+[node name="CharacterVisuals" type="Node2D" unique_id=1697649815]
+
+[node name="Hair" type="Sprite2D" parent="." unique_id=652378098]
+
+[node name="Head" type="Sprite2D" parent="." unique_id=237230773]
+
+[node name="Body" type="Sprite2D" parent="." unique_id=1215595712]
+
+[node name="Model" type="Sprite2D" parent="." unique_id=164158318]
+texture = ExtResource("1_icon")
+
+[node name="Waist" type="Sprite2D" parent="." unique_id=2021267097]
+
+[node name="Hands" type="Sprite2D" parent="." unique_id=33193336]
+
+[node name="Legs" type="Sprite2D" parent="." unique_id=975561907]
+
+[node name="Boots" type="Sprite2D" parent="." unique_id=1611891661]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1949671673]
+libraries/ = SubResource("AnimationLibrary_tngj6")
+autoplay = &"idle"
