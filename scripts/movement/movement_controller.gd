@@ -1,3 +1,4 @@
+class_name MovementController
 extends Node
 
 enum ControllerType {PLAYER, PATH, GRID}
