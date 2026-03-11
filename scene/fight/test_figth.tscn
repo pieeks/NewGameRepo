@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://f3ufcdsu1xr2"]
+
+[ext_resource type="Script" uid="uid://cdjh5323g1m1m" path="res://scripts/fights/test_figth.gd" id="1_grjjh"]
+[ext_resource type="PackedScene" uid="uid://cp1b66emov86f" path="res://scene/fight/grid_manager.tscn" id="2_m88po"]
+[ext_resource type="PackedScene" uid="uid://bpv5w7cpt1i77" path="res://scene/character.tscn" id="3_m217x"]
+
+[node name="TestFigth" type="Node2D" unique_id=1842162479]
+script = ExtResource("1_grjjh")
+
+[node name="GridManager" parent="." unique_id=2075479075 instance=ExtResource("2_m88po")]
+
+[node name="1" parent="." unique_id=2123511907 instance=ExtResource("3_m217x")]
+movement_type = 2

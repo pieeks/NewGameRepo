@@ -2,15 +2,12 @@ extends Node
 
 @export var speed: float = 150.0
 @export var arrival_tolerance: float = 2.0 # Wie nah muss er am Punkt sein?
+@export var grid_manager_path: NodePath
 
 var current_path: PackedVector2Array = []
 var target_point: Vector2 = Vector2.ZERO
 var is_moving: bool = false
-var grid_manager: Node2D
-
-func _ready() -> void:
-	# Wir suchen den GridManager einmalig in der Kampf-Szene
-	grid_manager = get_tree().current_scene.find_child("GridManager")
+@onready var grid_manager: Node2D = get_node(grid_manager_path) as Node2D
 
 # Dies wird vom MovementController in jedem Frame aufgerufen, wenn current_type == GRID
 func process_movement(character: CharacterBody2D, delta: float) -> void:

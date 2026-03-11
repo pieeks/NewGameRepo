@@ -1,7 +1,7 @@
 extends Node
 
 #Consts
-const WORLD_SCENE_PATH = "res://scene/testWorld.tscn"
+const WORLD_SCENE_PATH = "res://scene/test_world.tscn"
 const MAIN_MENUE_PATH = "res://scene/lobby.tscn"
 
 
