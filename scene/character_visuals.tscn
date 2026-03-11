@@ -112,6 +112,7 @@ _data = {
 [node name="Body" type="Sprite2D" parent="." unique_id=1215595712]
 
 [node name="Model" type="Sprite2D" parent="." unique_id=164158318]
+scale = Vector2(0.25, 0.25)
 texture = ExtResource("1_icon")
 
 [node name="Waist" type="Sprite2D" parent="." unique_id=2021267097]

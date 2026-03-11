@@ -1,17 +1,16 @@
-extends "res://scripts/states/state.gd"
-
+extends State
 
 func _ready() -> void:
 	if state_name == StringName():
 		state_name = &"Idle"
 
 
-func enter(previous_state) -> void:
+func enter(_previous_state) -> void:
 	if character:
 		character.net_anim_name = &"idle"
 
 
 func physics_update(_delta: float) -> void:
-	# Idle-State selbst ändert nichts an der Bewegung,
-	# er reagiert nur auf Statuswechsel durch den StateController.
-	pass
+	if character.velocity.length() > 0.1:
+		#Wir rufen den Manager an und fordern den Wechsel
+		state_controller.request_state_change(&"Move")

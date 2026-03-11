@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cp1b66emov86f"]
+
+[ext_resource type="Script" uid="uid://cenydv05pmr0k" path="res://scripts/fights/grid_manager.gd" id="1_hkieg"]
+
+[node name="GridManager" type="Node2D" unique_id=2075479075]
+script = ExtResource("1_hkieg")

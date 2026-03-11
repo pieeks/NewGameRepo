@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://4edfqg1bhdcr" path="res://scene/character_visuals.tscn" id="4_ylg48"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xo3ru"]
-size = Vector2(127, 128)
+size = Vector2(26, 26)
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_hjaqi"]
 properties/0/path = NodePath(".:position")
@@ -20,16 +20,17 @@ properties/2/spawn = true
 properties/2/replication_mode = 1
 
 [node name="Character" type="CharacterBody2D" unique_id=2123511907]
+position = Vector2(0, -13)
 collision_mask = 0
 script = ExtResource("1_6k5wm")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=253001767]
-position = Vector2(0.5, -1)
 shape = SubResource("RectangleShape2D_xo3ru")
 
 [node name="CharacterVisuals" parent="." unique_id=1437185516 instance=ExtResource("4_ylg48")]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1480388058]
+zoom = Vector2(1.4, 1.4)
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1327976104]
 replication_config = SubResource("SceneReplicationConfig_hjaqi")

@@ -1,17 +1,19 @@
-extends "res://scripts/states/state.gd"
+extends State
 
 
 func _ready() -> void:
 	if state_name == StringName():
 		state_name = &"Move"
 
-
-func enter(previous_state) -> void:
+func enter(_previous_state) -> void:
 	# Beim Betreten sofort eine passende Laufanimation wählen
 	_update_animation()
 
 
 func physics_update(_delta: float) -> void:
+	if character.velocity.length() <= 0.1:
+		state_controller.request_state_change(&"Idle")
+		return
 	_update_animation()
 
 

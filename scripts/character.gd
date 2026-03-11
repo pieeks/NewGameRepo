@@ -2,6 +2,9 @@ extends CharacterBody2D
 
 @onready var camera_2d: Camera2D = $Camera2D
 @onready var animation_player: AnimationPlayer = get_node_or_null("CharacterVisuals/AnimationPlayer")
+@onready var movement_controller: Node2D = $MovementController
+
+@export var movement_type : MovementController.ControllerType
 
 # Netzwerk-sichtbarer Animationszustand (wird später repliziert).
 # Interner Speicher (_net_anim_name) + Property mit Setter/Getters.
@@ -39,6 +42,8 @@ func _ready() -> void:
 	else:
 		camera_2d.enabled = false
 		z_index = 0
+	
+	movement_controller.current_type = movement_type
 
 
 func play_animation(anim_name: String) -> void:
