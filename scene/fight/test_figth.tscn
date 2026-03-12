@@ -6,8 +6,18 @@
 
 [node name="TestFigth" type="Node2D" unique_id=1842162479]
 script = ExtResource("1_grjjh")
+battle_character_scene = ExtResource("3_m217x")
+
+[node name="FightOverlay" type="CanvasLayer" parent="." unique_id=857466965]
+
+[node name="ColorRect" type="ColorRect" parent="FightOverlay" unique_id=642623319]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.45)
 
 [node name="GridManager" parent="." unique_id=2075479075 instance=ExtResource("2_m88po")]
 
-[node name="1" parent="." unique_id=2123511907 instance=ExtResource("3_m217x")]
-movement_type = 2
+[node name="FightCamera" type="Camera2D" parent="." unique_id=231793123]

@@ -78,8 +78,20 @@ func _draw() -> void:
 
 
 func get_action_path(start_world_pos: Vector2, target_world_pos: Vector2) -> PackedVector2Array:
-	var start_id = astar.get_closest_point(start_world_pos)
-	var target_id = astar.get_closest_point(target_world_pos)
+	# Weltkoordinaten in die lokalen Koordinaten dieses GridManagers umrechnen,
+	# damit das Grid auch dann korrekt funktioniert, wenn die Szene verschoben ist.
+	var local_start: Vector2 = to_local(start_world_pos)
+	var local_target: Vector2 = to_local(target_world_pos)
+
+	var start_id = astar.get_closest_point(local_start)
+	var target_id = astar.get_closest_point(local_target)
 	
-	# Gibt ein Array von Vector2-Positionen (Mittelpunkten) zurück
-	return astar.get_point_path(start_id, target_id)
+	# Pfadpunkte in lokale Grid-Koordinaten holen
+	var local_path: PackedVector2Array = astar.get_point_path(start_id, target_id)
+	
+	# Und dann wieder in Weltkoordinaten umrechnen, damit CharacterBody2D sie direkt nutzen kann
+	var world_path := PackedVector2Array()
+	for p in local_path:
+		world_path.append(to_global(p))
+	
+	return world_path

@@ -7,7 +7,14 @@ extends Node
 var current_path: PackedVector2Array = []
 var target_point: Vector2 = Vector2.ZERO
 var is_moving: bool = false
-@onready var grid_manager: Node2D = get_node(grid_manager_path) as Node2D
+var grid_manager: Node2D
+
+
+func _ready() -> void:
+	if grid_manager_path != NodePath():
+		grid_manager = get_node(grid_manager_path) as Node2D
+	else:
+		grid_manager = null
 
 # Dies wird vom MovementController in jedem Frame aufgerufen, wenn current_type == GRID
 func process_movement(character: CharacterBody2D, delta: float) -> void:
