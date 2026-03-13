@@ -35,6 +35,10 @@ func set_owner_peer_id(peer_id: int) -> void:
 	owner_peer_id = peer_id
 
 
+func get_owner_peer_id() -> int:
+	return owner_peer_id
+
+
 func _spawn_battle_character(peer_id: int) -> void:
 	if battle_character_scene == null:
 		push_error("FightManager: battle_character_scene ist nicht gesetzt.")

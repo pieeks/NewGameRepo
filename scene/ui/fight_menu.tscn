@@ -57,5 +57,10 @@ text = "Kampf starten"
 layout_mode = 2
 text = "Kampf beitreten (Client)"
 
+[node name="LeaveFightButton" type="Button" parent="Panel/VBoxContainer" unique_id=1722339722]
+layout_mode = 2
+text = "Kampf verlassen"
+
 [connection signal="pressed" from="Panel/VBoxContainer/HostFightButton" to="." method="_on_host_fight_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/JoinFightButton" to="." method="_on_join_fight_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/LeaveFightButton" to="." method="_on_leave_fight_button_pressed"]

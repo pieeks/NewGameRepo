@@ -55,6 +55,17 @@ func start_fight_for_peer(peer_id: int) -> void:
 	rpc_start_fight.rpc(peer_id)
 
 
+func end_fight_for_peer(peer_id: int) -> void:
+	# Fight-Ende immer vom Host aus steuern
+	if not multiplayer.is_server():
+		return
+	
+	if peers_in_fight.has(peer_id):
+		peers_in_fight[peer_id] = false
+	
+	rpc_end_fight_for_peer.rpc(peer_id)
+
+
 func end_fight() -> void:
 	# Fight-Ende ebenfalls nur vom Host anstoßen
 	if not multiplayer.is_server():
@@ -96,6 +107,17 @@ func rpc_request_start_fight() -> void:
 	start_fight_for_peer(requester_id)
 
 
+@rpc("any_peer")
+func rpc_request_end_fight_for_peer() -> void:
+	# Wird von Clients aufgerufen; nur der Host verarbeitet diese Anfrage.
+	if not multiplayer.is_server():
+		return
+	
+	var requester_id := multiplayer.get_remote_sender_id()
+	print("testWorld: End-Fight-Request von Peer ", requester_id)
+	end_fight_for_peer(requester_id)
+
+
 @rpc("any_peer", "call_local")
 func rpc_end_fight() -> void:
 	if $FightLayer.get_child_count() == 0:
@@ -104,6 +126,20 @@ func rpc_end_fight() -> void:
 		child.queue_free()
 	is_fight_active = false
 	peers_in_fight.clear()
+
+
+@rpc("any_peer", "call_local")
+func rpc_end_fight_for_peer(peer_id: int) -> void:
+	# Konkreten Fight für einen bestimmten Peer schließen
+	for child in $FightLayer.get_children():
+		if child.has_method("get_owner_peer_id") and child.get_owner_peer_id() == peer_id:
+			child.queue_free()
+	
+	if peers_in_fight.has(peer_id):
+		peers_in_fight[peer_id] = false
+	
+	if $FightLayer.get_child_count() == 0:
+		is_fight_active = false
 	# Welt-Kamera des lokalen Spielers wieder aktivieren
 	var my_id: int = multiplayer.get_unique_id()
 	var my_char: Node = player_container.get_node_or_null(str(my_id))
@@ -145,6 +181,8 @@ func _toggle_fight_menu() -> void:
 		fight_menu.start_fight_pressed.connect(_on_fight_menu_start_fight)
 	if fight_menu.has_signal("join_fight_pressed"):
 		fight_menu.join_fight_pressed.connect(_on_fight_menu_join_fight)
+	if fight_menu.has_signal("leave_fight_pressed"):
+		fight_menu.leave_fight_pressed.connect(_on_fight_menu_leave_fight)
 
 
 func _on_fight_menu_start_fight() -> void:
@@ -170,3 +208,19 @@ func _on_fight_menu_join_fight() -> void:
 	if fight_menu and is_instance_valid(fight_menu):
 		fight_menu.queue_free()
 		fight_menu = null
+
+
+func _on_fight_menu_leave_fight() -> void:
+	# Menü schließen
+	if fight_menu and is_instance_valid(fight_menu):
+		fight_menu.queue_free()
+		fight_menu = null
+	
+	var my_id := multiplayer.get_unique_id()
+	if multiplayer.is_server():
+		# Host beendet eigenen Fight direkt
+		end_fight_for_peer(my_id)
+	else:
+		# Client sendet nur eine Anfrage an den Host,
+		# der dann den Fight für diesen Peer beendet.
+		rpc_id(1, "rpc_request_end_fight_for_peer")
