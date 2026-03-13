@@ -4,6 +4,7 @@ extends Node2D
 @onready var fight_camera: Camera2D = $FightCamera
 
 @export var battle_character_scene: PackedScene
+@export var owner_peer_id: int = 0
 
 @export var camera_move_speed: float = 400.0
 @export var camera_zoom_step: float = 0.1
@@ -12,26 +13,39 @@ extends Node2D
 
 
 func _ready() -> void:
-	# Fight-Kamera aktivieren
+	var my_id := multiplayer.get_unique_id()
+	print("TestFight: _ready() auf Peer", my_id, " owner_peer_id =", owner_peer_id)
+	
+	# Nur der Besitzer-Peer soll diesen Fight visuell sehen und steuern.
+	if my_id != owner_peer_id:
+		visible = false
+		return
+	
+	# Nur der Besitzer-Peer aktiviert die Kamera und spawnt seinen Battle-Character.
 	if fight_camera:
 		fight_camera.make_current()
 	
-	# Einen Battle-Character spawnen (später über Encounter-Daten)
-	_spawn_battle_character()
+	if owner_peer_id == 0:
+		owner_peer_id = my_id
+	
+	_spawn_battle_character(owner_peer_id)
 
 
-func _spawn_battle_character() -> void:
+func set_owner_peer_id(peer_id: int) -> void:
+	owner_peer_id = peer_id
+
+
+func _spawn_battle_character(peer_id: int) -> void:
 	if battle_character_scene == null:
 		push_error("FightManager: battle_character_scene ist nicht gesetzt.")
 		return
 	
+	print("TestFight: Spawne Battle-Character für Peer", peer_id, " (Host-ID:", multiplayer.get_unique_id(), ")")
 	var character: CharacterBody2D = battle_character_scene.instantiate()
 	
-	# Für den Prototypen: Authority und Name auf den lokalen Peer setzen,
-	# damit MovementController und States im Multiplayer-Kontext aktiv sind.
-	var my_id: int = multiplayer.get_unique_id()
-	character.name = str(my_id)
-	character.set_multiplayer_authority(my_id)
+	# Authority und Name auf den Peer setzen, für den dieser Fight gedacht ist.
+	character.name = str(peer_id)
+	character.set_multiplayer_authority(peer_id)
 	
 	# Startposition grob in die Nähe des Grids legen
 	character.global_position = grid_manager.global_position

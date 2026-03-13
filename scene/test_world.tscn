@@ -4,11 +4,13 @@
 [ext_resource type="PackedScene" uid="uid://bpv5w7cpt1i77" path="res://scene/character.tscn" id="2_errqf"]
 [ext_resource type="PackedScene" uid="uid://dpv175xcbqgya" path="res://scene/lobby.tscn" id="3_7hwpa"]
 [ext_resource type="PackedScene" uid="uid://f3ufcdsu1xr2" path="res://scene/fight/test_figth.tscn" id="3_errqf"]
+[ext_resource type="PackedScene" path="res://scene/ui/fight_menu.tscn" id="4_7hwpa"]
 
 [node name="TestWorld" type="Node2D" unique_id=1911214217]
 script = ExtResource("1_thbi8")
 player_scene = ExtResource("2_errqf")
 fight_scene = ExtResource("3_errqf")
+fight_menu_scene = ExtResource("4_7hwpa")
 
 [node name="PlayerContainer" type="Node2D" parent="." unique_id=564631683]
 

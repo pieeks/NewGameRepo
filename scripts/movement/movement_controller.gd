@@ -15,14 +15,14 @@ func _physics_process(delta: float) -> void:
 	if not character.is_multiplayer_authority():
 		return
 	
-	# Wenn wir uns in einer Welt befinden, die einen aktiven Fight markiert,
-	# soll der Open-World-Character nicht weiter bewegt werden.
+	# Wenn wir uns in einer Welt befinden, die aktive Fights markiert,
+	# soll NUR der Character gestoppt werden, dessen Peer bereits in einem Fight ist.
 	var world := get_tree().current_scene
 	if world and current_type == ControllerType.PLAYER:
-		# In der TestWorld.gd gibt es is_fight_active; in anderen Szenen existieren keine Characters mit MovementController.
-		# Daher können wir hier direkt darauf zugreifen.
-		if "is_fight_active" in world and world.is_fight_active:
-			return
+		if world.has_method("is_peer_in_fight"):
+			var peer_id := character.name.to_int()
+			if world.is_peer_in_fight(peer_id):
+				return
 	
 	if current_type == ControllerType.PLAYER:
 		direct_movement.process_movement(character, delta)

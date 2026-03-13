@@ -2,10 +2,16 @@ extends Node2D
 
 @export var player_scene: PackedScene
 @export var fight_scene: PackedScene
+@export var fight_menu_scene: PackedScene
 
 @onready var player_container: Node2D = $PlayerContainer
+@onready var ui_layer: CanvasLayer = $UILayer
+
+var fight_menu: Control
 
 var is_fight_active: bool = false
+# Tracking, welche Peers aktuell in einem Fight sind (für Movement-Block in der Open World)
+var peers_in_fight: = {}
 
 
 func _ready() -> void:
@@ -39,27 +45,65 @@ func remove_character_from_stage(peer_id: int) -> void:
 		print("testWorld: Konnte keinen Charcter für ID: ", peer_id, " finden.") 
 
 
-func start_fight() -> void:
-	if fight_scene == null:
-		print("testWorld: Fehler - fight_scene ist nicht gesetzt.")
+func start_fight_for_peer(peer_id: int) -> void:
+	# Fight-Start immer vom Host aus steuern und dann per RPC
+	# auf alle Peers (inkl. Host selbst) spiegeln.
+	if not multiplayer.is_server():
 		return
 	
-	if $FightLayer.get_child_count() > 0:
-		print("testWorld: Fight läuft bereits.")
-		return
-	
-	var fight_instance: Node2D = fight_scene.instantiate()
-	$FightLayer.add_child(fight_instance)
-	is_fight_active = true
-	print("testWorld: Test-Fight wurde instanziert.")
+	peers_in_fight[peer_id] = true
+	rpc_start_fight.rpc(peer_id)
 
 
 func end_fight() -> void:
+	# Fight-Ende ebenfalls nur vom Host anstoßen
+	if not multiplayer.is_server():
+		return
+	
+	rpc_end_fight.rpc()
+
+
+@rpc("any_peer", "call_local")
+func rpc_start_fight(owner_peer_id: int) -> void:
+	if fight_scene == null:
+		print("testWorld: Fehler - fight_scene ist nicht gesetzt.")
+		return
+
+	var fight_instance: Node2D = fight_scene.instantiate()
+	# Peer-ID in die Fight-Szene übergeben, falls das Script sie unterstützt.
+	if fight_instance.has_method("set_owner_peer_id"):
+		fight_instance.set_owner_peer_id(owner_peer_id)
+	$FightLayer.add_child(fight_instance)
+	is_fight_active = true
+	# Sicherstellen, dass auf allen Peers der passende Spieler
+	# als "im Fight" markiert wird, damit sein Open-World-Movement stoppt.
+	peers_in_fight[owner_peer_id] = true
+	print("testWorld: Test-Fight wurde instanziert (RPC).")
+
+
+func is_peer_in_fight(peer_id: int) -> bool:
+	return peers_in_fight.has(peer_id) and peers_in_fight[peer_id]
+
+
+@rpc("any_peer")
+func rpc_request_start_fight() -> void:
+	# Wird von Clients aufgerufen; nur der Host verarbeitet diese Anfrage.
+	if not multiplayer.is_server():
+		return
+	
+	var requester_id := multiplayer.get_remote_sender_id()
+	print("testWorld: Start-Fight-Request von Peer ", requester_id)
+	start_fight_for_peer(requester_id)
+
+
+@rpc("any_peer", "call_local")
+func rpc_end_fight() -> void:
 	if $FightLayer.get_child_count() == 0:
 		return
 	for child in $FightLayer.get_children():
 		child.queue_free()
 	is_fight_active = false
+	peers_in_fight.clear()
 	# Welt-Kamera des lokalen Spielers wieder aktivieren
 	var my_id: int = multiplayer.get_unique_id()
 	var my_char: Node = player_container.get_node_or_null(str(my_id))
@@ -67,7 +111,7 @@ func end_fight() -> void:
 		var cam: Camera2D = my_char.get_node_or_null("Camera2D")
 		if cam:
 			cam.make_current()
-	print("testWorld: Fight beendet.")
+	print("testWorld: Fight beendet (RPC).")
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -77,8 +121,52 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		else:
 			$UILayer/CenterContainer/Lobby.visible = true
 	
+	# Taste F (oder die zugeordnete Action) öffnet das Kampf-Menü,
+	# anstatt direkt einen Kampf zu starten/beenden.
 	if event.is_action_pressed("action_button"):
-		if is_fight_active:
-			end_fight()
-		else:
-			start_fight()
+		_toggle_fight_menu()
+
+
+func _toggle_fight_menu() -> void:
+	if fight_menu and is_instance_valid(fight_menu):
+		fight_menu.queue_free()
+		fight_menu = null
+		return
+	
+	if fight_menu_scene == null:
+		print("testWorld: fight_menu_scene ist nicht gesetzt.")
+		return
+	
+	fight_menu = fight_menu_scene.instantiate()
+	ui_layer.add_child(fight_menu)
+	
+	# Signale verbinden
+	if fight_menu.has_signal("start_fight_pressed"):
+		fight_menu.start_fight_pressed.connect(_on_fight_menu_start_fight)
+	if fight_menu.has_signal("join_fight_pressed"):
+		fight_menu.join_fight_pressed.connect(_on_fight_menu_join_fight)
+
+
+func _on_fight_menu_start_fight() -> void:
+	# Menü schließen und Kampf starten
+	if fight_menu and is_instance_valid(fight_menu):
+		fight_menu.queue_free()
+		fight_menu = null
+	
+	if multiplayer.is_server():
+		# Host startet direkt einen Fight für sich selbst
+		var my_id := multiplayer.get_unique_id()
+		start_fight_for_peer(my_id)
+	else:
+		# Client sendet nur eine Anfrage an den Host,
+		# der dann einen neuen Fight für diesen Peer startet.
+		rpc_id(1, "rpc_request_start_fight")
+
+
+func _on_fight_menu_join_fight() -> void:
+	# Für den Moment: Menü nur schließen.
+	# Der eigentliche Join passiert, sobald der Host einen Fight startet,
+	# da rpc_start_fight() auf allen Peers ausgeführt wird.
+	if fight_menu and is_instance_valid(fight_menu):
+		fight_menu.queue_free()
+		fight_menu = null

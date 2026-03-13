@@ -9,6 +9,7 @@ script = ExtResource("1_grjjh")
 battle_character_scene = ExtResource("3_m217x")
 
 [node name="FightOverlay" type="CanvasLayer" parent="." unique_id=857466965]
+visible = false
 
 [node name="ColorRect" type="ColorRect" parent="FightOverlay" unique_id=642623319]
 anchors_preset = 15
