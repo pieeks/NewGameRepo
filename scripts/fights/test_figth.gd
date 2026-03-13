@@ -16,11 +16,11 @@ func _ready() -> void:
 	if fight_camera:
 		fight_camera.make_current()
 	
-	# Testweise einen Battle-Character spawnen (später über Encounter-Daten)
-	_spawn_test_battle_character()
+	# Einen Battle-Character spawnen (später über Encounter-Daten)
+	_spawn_battle_character()
 
 
-func _spawn_test_battle_character() -> void:
+func _spawn_battle_character() -> void:
 	if battle_character_scene == null:
 		push_error("FightManager: battle_character_scene ist nicht gesetzt.")
 		return

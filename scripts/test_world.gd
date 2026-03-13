@@ -39,7 +39,7 @@ func remove_character_from_stage(peer_id: int) -> void:
 		print("testWorld: Konnte keinen Charcter für ID: ", peer_id, " finden.") 
 
 
-func start_test_fight() -> void:
+func start_fight() -> void:
 	if fight_scene == null:
 		print("testWorld: Fehler - fight_scene ist nicht gesetzt.")
 		return
@@ -54,7 +54,7 @@ func start_test_fight() -> void:
 	print("testWorld: Test-Fight wurde instanziert.")
 
 
-func end_test_fight() -> void:
+func end_fight() -> void:
 	if $FightLayer.get_child_count() == 0:
 		return
 	for child in $FightLayer.get_children():
@@ -79,6 +79,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	
 	if event.is_action_pressed("action_button"):
 		if is_fight_active:
-			end_test_fight()
+			end_fight()
 		else:
-			start_test_fight()
+			start_fight()
