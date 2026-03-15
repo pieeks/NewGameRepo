@@ -1,4 +1,6 @@
 extends Node2D
+## Einzelner Kampf (Grid, Teilnehmer, Battle-Characters). Sichtbarkeit nur für Teilnehmer.
+## Verwaltet Spawn und Sichtbarkeit der Battle-Characters; Ende über [signal fight_ready_to_remove].
 
 signal fight_ready_to_remove(owner_peer_id: int)
 
@@ -22,11 +24,9 @@ func _ready() -> void:
 	var my_id := multiplayer.get_unique_id()
 	print("TestFight: _ready() auf Peer", my_id, " owner_peer_id =", owner_peer_id)
 
-	# Owner als ersten Teilnehmer eintragen
 	if owner_peer_id != 0 and not participants.has(owner_peer_id):
 		participants.append(owner_peer_id)
 
-	# Sichtbarkeit: nur wer in participants ist, sieht den Fight (Kamera kommt vom Character)
 	if participants.has(my_id):
 		visible = true
 	else:
@@ -36,7 +36,6 @@ func _ready() -> void:
 	if owner_peer_id == 0:
 		owner_peer_id = my_id
 
-	# Battle-Character nur vom Host spawnen (für Owner; Joiner kommen in add_participant)
 	if multiplayer.is_server():
 		_spawn_battle_character(owner_peer_id)
 
@@ -63,40 +62,29 @@ func add_participant(peer_id: int) -> void:
 	if not participants.has(peer_id):
 		participants.append(peer_id)
 	print("fight_template: add_participant(", peer_id, "), participants jetzt: ", participants)
-	# Wer gerade beitritt, soll sofort Fight sehen (Kamera übernimmt der Character beim Spawn)
 	if peer_id == multiplayer.get_unique_id():
 		visible = true
 		_sync_player_container_visibility()
-	
-	# Nur Host spawnt Battle-Character; einen Frame verzögern, damit Client die Fight-Szene hat (Join-in-Progress).
 	if multiplayer.is_server() and peer_id != owner_peer_id:
 		call_deferred("_spawn_battle_character", peer_id)
 
 
 func _spawn_battle_character(peer_id: int) -> void:
 	if battle_character_scene == null:
-		push_error("FightManager: battle_character_scene ist nicht gesetzt.")
+		push_error("FightTemplate: battle_character_scene ist nicht gesetzt.")
 		return
 	
 	print("TestFight: Spawne Battle-Character für Peer", peer_id, " (Host-ID:", multiplayer.get_unique_id(), ")")
 	var character: CharacterBody2D = battle_character_scene.instantiate()
 	
-	# Authority und Name auf den Peer setzen, für den dieser Fight gedacht ist.
 	character.name = str(peer_id)
 	character.set_multiplayer_authority(peer_id)
-	
-	# Startposition grob in die Nähe des Grids legen
 	character.global_position = grid_manager.global_position
-	
 	player_container.add_child(character)
-	
-	# Character-Kamera bleibt an – character_template.gd setzt für Authority make_current(), sonst enabled = false
-	
 	_configure_battle_character(character, peer_id)
 
 
 func _configure_battle_character(character: CharacterBody2D, controlled_peer_id: int) -> void:
-	# Sicherstellen, dass der Character im Grid-Modus läuft
 	character.movement_type = MovementController.ControllerType.GRID
 	character.controlled_by_peer_id = controlled_peer_id
 	
@@ -109,8 +97,6 @@ func _configure_battle_character(character: CharacterBody2D, controlled_peer_id:
 	var grid_movement: Node = controller.get_node_or_null("GridMovement")
 	if grid_movement == null:
 		return
-	
-	# Direkt den GridManager setzen (Pfad ist hier fix die lokale Instanz)
 	grid_movement.grid_manager = grid_manager
 
 
@@ -128,13 +114,11 @@ func request_end_fight() -> void:
 		return
 	_is_ending = true
 	rpc_notify_fight_ending.rpc()
-	# Freigabe verzögern, damit die Multiplayer-Engine keine get_node/get_cached_object
-	# auf bereits freigegebene Nodes ausführt (vermeidet C++-Fehler beim Kampfende).
+	# Verzögerte Freigabe, damit Multiplayer-Engine keine get_node auf freigegebene Nodes ausführt.
 	for child in npc_container.get_children():
 		get_tree().create_timer(_FREE_DELAY_SECONDS).timeout.connect(_delayed_free_node.bind(child))
 	for child in player_container.get_children():
 		get_tree().create_timer(_FREE_DELAY_SECONDS).timeout.connect(_delayed_free_node.bind(child))
-	# Erste Prüfung erst nach der Verzögerung, damit Container dann leer sind.
 	var timer: SceneTreeTimer = get_tree().create_timer(_FREE_DELAY_SECONDS + 0.05)
 	timer.timeout.connect(_check_containers_empty_and_emit_ready)
 

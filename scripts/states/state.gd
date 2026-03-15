@@ -1,5 +1,6 @@
 class_name State
 extends Node
+## Basis für Idle/Move etc.; [method enter]/[method exit]/[method physics_update].
 
 var character: CharacterBody2D
 var state_controller: Node

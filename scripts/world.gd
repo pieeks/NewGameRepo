@@ -1,4 +1,5 @@
 extends Node2D
+## World-Root: Spawn/Remove von Spielern, FightManager, Fight-Menu, Lobby-Toggle.
 
 @export var player_scene: PackedScene
 @export var fight_menu_scene: PackedScene
@@ -11,7 +12,6 @@ var fight_menu: Control
 
 
 func _ready() -> void:
-	print("world: _ready()")
 	GameManager.notify_world_is_ready.call_deferred()
 	if fight_manager.has_signal("fight_ended_for_peer"):
 		fight_manager.fight_ended_for_peer.connect(_on_fight_ended_for_peer)
