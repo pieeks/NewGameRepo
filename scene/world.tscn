@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://b2m03o7jo2axq"]
 
 [ext_resource type="Script" uid="uid://b1vmqo80vik12" path="res://scripts/world.gd" id="1_emkrx"]
-[ext_resource type="PackedScene" path="res://scene/character_template.tscn" id="2_0tg4p"]
+[ext_resource type="PackedScene" uid="uid://dq4r2r13enjen" path="res://scene/character_template.tscn" id="2_0tg4p"]
 [ext_resource type="PackedScene" uid="uid://f3ufcdsu1xr2" path="res://scene/fight/fight_template.tscn" id="3_hcb8y"]
 [ext_resource type="PackedScene" uid="uid://dpnxj50xyugb2" path="res://scene/ui/fight_menu.tscn" id="4_y3jn2"]
 [ext_resource type="PackedScene" uid="uid://dpv175xcbqgya" path="res://scene/lobby.tscn" id="5_yur6x"]
@@ -15,9 +15,9 @@ fight_menu_scene = ExtResource("4_y3jn2")
 [node name="PlayerContainer" type="Node2D" parent="." unique_id=564631683]
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1945847825]
-_spawnable_scenes = PackedStringArray("res://scene/character_template.tscn")
+_spawnable_scenes = PackedStringArray("uid://dq4r2r13enjen")
 spawn_path = NodePath("../PlayerContainer")
-spawn_limit = 2
+spawn_limit = 3
 
 [node name="FightManager" type="Node" parent="." unique_id=1945847826]
 script = ExtResource("6_fmgr")

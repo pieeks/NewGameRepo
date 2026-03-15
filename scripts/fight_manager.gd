@@ -42,10 +42,9 @@ func _on_fight_ready_to_remove(owner_peer_id: int) -> void:
 	if fight_node.get("participants") != null:
 		for p in fight_node.participants:
 			participants_snapshot.append(p)
+	# State auf allen Peers aktualisieren (auch Client), damit Movement wieder funktioniert
 	for p in participants_snapshot:
-		if peers_in_fight.has(p):
-			peers_in_fight[p] = false
-		fight_ended_for_peer.emit(p)
+		rpc_end_fight_for_peer.rpc(p)
 	fight_node.queue_free()
 	rpc_destroy_fight_instance.rpc(owner_peer_id)
 	if fight_layer.get_child_count() == 0:

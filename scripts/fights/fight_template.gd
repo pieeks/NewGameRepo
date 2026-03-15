@@ -107,6 +107,13 @@ func _configure_battle_character(character: CharacterBody2D, controlled_peer_id:
 	grid_movement.grid_manager = grid_manager
 
 
+const _FREE_DELAY_SECONDS: float = 0.15
+
+func _delayed_free_node(node: Node) -> void:
+	if is_instance_valid(node):
+		node.queue_free()
+
+
 func request_end_fight() -> void:
 	if not multiplayer.is_server():
 		return
@@ -114,13 +121,15 @@ func request_end_fight() -> void:
 		return
 	_is_ending = true
 	rpc_notify_fight_ending.rpc()
-	# Container-Kinder erst im nächsten Frame freigeben, damit die Multiplayer-Engine
-	# keinen get_node/get_cached_object auf bereits zur Löschung markierte Nodes ausführt.
+	# Freigabe verzögern, damit die Multiplayer-Engine keine get_node/get_cached_object
+	# auf bereits freigegebene Nodes ausführt (vermeidet C++-Fehler beim Kampfende).
 	for child in npc_container.get_children():
-		child.call_deferred("queue_free")
+		get_tree().create_timer(_FREE_DELAY_SECONDS).timeout.connect(_delayed_free_node.bind(child))
 	for child in player_container.get_children():
-		child.call_deferred("queue_free")
-	_check_containers_empty_and_emit_ready()
+		get_tree().create_timer(_FREE_DELAY_SECONDS).timeout.connect(_delayed_free_node.bind(child))
+	# Erste Prüfung erst nach der Verzögerung, damit Container dann leer sind.
+	var timer: SceneTreeTimer = get_tree().create_timer(_FREE_DELAY_SECONDS + 0.05)
+	timer.timeout.connect(_check_containers_empty_and_emit_ready)
 
 
 func _check_containers_empty_and_emit_ready() -> void:
