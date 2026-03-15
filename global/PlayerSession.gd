@@ -33,7 +33,7 @@ func get_available_savegames() -> Array:
 					savegames.append({
 						"file": file_name,
 						"name": data.get("name", "Unbekannt"),
-						"level": data.get("levl", 1)
+						"level": data.get("level", data.get("levl", 1))
 					})
 				
 				file_name = dir.get_next()

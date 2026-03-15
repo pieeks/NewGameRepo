@@ -1,12 +1,16 @@
 extends Node2D
 
+signal fight_ready_to_remove(owner_peer_id: int)
+
 @onready var grid_manager: Node2D = $GridManager
 @onready var player_container: Node = $PlayerContainer
+@onready var npc_container: Node = $NpcContainer
 
 @export var battle_character_scene: PackedScene
 @export var owner_peer_id: int = 0
 
 var participants: Array[int] = []
+var _is_ending: bool = false
 
 func _ready() -> void:
 	var my_id := multiplayer.get_unique_id()
@@ -101,3 +105,55 @@ func _configure_battle_character(character: CharacterBody2D, controlled_peer_id:
 	
 	# Direkt den GridManager setzen (Pfad ist hier fix die lokale Instanz)
 	grid_movement.grid_manager = grid_manager
+
+
+func request_end_fight() -> void:
+	if not multiplayer.is_server():
+		return
+	if _is_ending:
+		return
+	_is_ending = true
+	rpc_notify_fight_ending.rpc()
+	# Container-Kinder erst im nächsten Frame freigeben, damit die Multiplayer-Engine
+	# keinen get_node/get_cached_object auf bereits zur Löschung markierte Nodes ausführt.
+	for child in npc_container.get_children():
+		child.call_deferred("queue_free")
+	for child in player_container.get_children():
+		child.call_deferred("queue_free")
+	_check_containers_empty_and_emit_ready()
+
+
+func _check_containers_empty_and_emit_ready() -> void:
+	if not multiplayer.is_server():
+		return
+	if player_container.get_child_count() > 0 or npc_container.get_child_count() > 0:
+		var timer: SceneTreeTimer = get_tree().create_timer(0.05)
+		timer.timeout.connect(_check_containers_empty_and_emit_ready)
+		return
+	fight_ready_to_remove.emit(owner_peer_id)
+
+
+func request_leave_peer(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	if not has_participant(peer_id):
+		return
+	participants.erase(peer_id)
+	var char_node: Node = player_container.get_node_or_null(str(peer_id))
+	if char_node:
+		char_node.call_deferred("queue_free")
+	_notify_fight_manager_peer_left(peer_id)
+	if participants.size() == 0 and npc_container.get_child_count() == 0:
+		request_end_fight()
+
+
+func _notify_fight_manager_peer_left(peer_id: int) -> void:
+	var world: Node = get_parent().get_parent()
+	var fm: Node = world.get_node_or_null("FightManager")
+	if fm != null and fm.has_method("notify_peer_left_fight"):
+		fm.notify_peer_left_fight(peer_id)
+
+
+@rpc("any_peer", "call_local")
+func rpc_notify_fight_ending() -> void:
+	visible = false

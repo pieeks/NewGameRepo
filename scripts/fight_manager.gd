@@ -10,6 +10,48 @@ var is_fight_active: bool = false
 var peers_in_fight: Dictionary = {}
 
 
+func notify_peer_left_fight(peer_id: int) -> void:
+	rpc_end_fight_for_peer.rpc(peer_id)
+
+
+func _process_end_request(requester_id: int) -> void:
+	for child in fight_layer.get_children():
+		if not child.has_method("has_participant"):
+			continue
+		if not child.has_participant(requester_id):
+			continue
+		var owner_id: int = child.get_owner_peer_id() if child.has_method("get_owner_peer_id") else 0
+		if requester_id == owner_id:
+			child.request_end_fight()
+		else:
+			child.request_leave_peer(requester_id)
+		return
+
+
+func _on_fight_ready_to_remove(owner_peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var fight_node: Node = null
+	for child in fight_layer.get_children():
+		if child.has_method("get_owner_peer_id") and child.get_owner_peer_id() == owner_peer_id:
+			fight_node = child
+			break
+	if fight_node == null:
+		return
+	var participants_snapshot: Array = []
+	if fight_node.get("participants") != null:
+		for p in fight_node.participants:
+			participants_snapshot.append(p)
+	for p in participants_snapshot:
+		if peers_in_fight.has(p):
+			peers_in_fight[p] = false
+		fight_ended_for_peer.emit(p)
+	fight_node.queue_free()
+	rpc_destroy_fight_instance.rpc(owner_peer_id)
+	if fight_layer.get_child_count() == 0:
+		is_fight_active = false
+
+
 func start_fight_for_peer(peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
@@ -20,9 +62,7 @@ func start_fight_for_peer(peer_id: int) -> void:
 func end_fight_for_peer(peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
-	if peers_in_fight.has(peer_id):
-		peers_in_fight[peer_id] = false
-	rpc_end_fight_for_peer.rpc(peer_id)
+	_process_end_request(peer_id)
 
 
 func end_fight() -> void:
@@ -60,6 +100,8 @@ func rpc_start_fight(owner_peer_id: int) -> void:
 	if fight_instance.has_method("set_owner_peer_id"):
 		fight_instance.set_owner_peer_id(owner_peer_id)
 	fight_layer.add_child(fight_instance)
+	if fight_instance.has_signal("fight_ready_to_remove"):
+		fight_instance.fight_ready_to_remove.connect(_on_fight_ready_to_remove)
 	is_fight_active = true
 	peers_in_fight[owner_peer_id] = true
 	print("FightManager: Fight wurde instanziert (RPC).")
@@ -78,6 +120,8 @@ func rpc_create_existing_fight(owner_peer_id: int, participants_list: Array) -> 
 	if fight_instance.has_method("set_participants"):
 		fight_instance.set_participants(participants_list)
 	fight_layer.add_child(fight_instance)
+	if fight_instance.has_signal("fight_ready_to_remove"):
+		fight_instance.fight_ready_to_remove.connect(_on_fight_ready_to_remove)
 	is_fight_active = true
 	for p in participants_list:
 		peers_in_fight[int(p)] = true
@@ -138,20 +182,33 @@ func rpc_request_end_fight_for_peer() -> void:
 func rpc_end_fight() -> void:
 	if fight_layer.get_child_count() == 0:
 		return
-	for child in fight_layer.get_children():
-		child.queue_free()
+	if multiplayer.is_server():
+		for child in fight_layer.get_children():
+			if child.has_method("request_end_fight"):
+				child.request_end_fight()
+	for p in peers_in_fight.keys():
+		if peers_in_fight[p]:
+			fight_ended_for_peer.emit(p)
 	is_fight_active = false
 	peers_in_fight.clear()
 
 
 @rpc("any_peer", "call_local")
 func rpc_end_fight_for_peer(peer_id: int) -> void:
-	for child in fight_layer.get_children():
-		if child.has_method("get_owner_peer_id") and child.get_owner_peer_id() == peer_id:
-			child.queue_free()
 	if peers_in_fight.has(peer_id):
 		peers_in_fight[peer_id] = false
 	if fight_layer.get_child_count() == 0:
 		is_fight_active = false
 	fight_ended_for_peer.emit(peer_id)
 	print("FightManager: Fight beendet (RPC).")
+
+
+@rpc("any_peer", "call_local")
+func rpc_destroy_fight_instance(owner_peer_id: int) -> void:
+	if multiplayer.is_server():
+		return
+	var fight_node: Node = fight_layer.get_node_or_null("Fight_%d" % owner_peer_id)
+	if fight_node:
+		fight_node.queue_free()
+	if fight_layer.get_child_count() == 0:
+		is_fight_active = false
