@@ -38,6 +38,12 @@ func get_owner_peer_id() -> int:
 	return owner_peer_id
 
 
+func set_participants(participants_list: Array) -> void:
+	participants.clear()
+	for p in participants_list:
+		participants.append(int(p))
+
+
 func has_participant(peer_id: int) -> bool:
 	return participants.has(peer_id)
 
@@ -51,9 +57,9 @@ func add_participant(peer_id: int) -> void:
 	if peer_id == multiplayer.get_unique_id():
 		visible = true
 	
-	#Nur Host spawnt Battle-character; Owner wurde schon in _ready() gespawnt
+	# Nur Host spawnt Battle-Character; einen Frame verzögern, damit Client die Fight-Szene hat (Join-in-Progress).
 	if multiplayer.is_server() and peer_id != owner_peer_id:
-		_spawn_battle_character(peer_id)
+		call_deferred("_spawn_battle_character", peer_id)
 
 
 func _spawn_battle_character(peer_id: int) -> void:

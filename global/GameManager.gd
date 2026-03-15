@@ -71,6 +71,8 @@ func _process_spawn_command(peer_id: int, data: Dictionary) -> void:
 	var current_world: Node = get_tree().current_scene
 	if current_world.has_method("spawn_character_to_stage"):
 		current_world.spawn_character_to_stage(peer_id, data)
+		if current_world.has_method("sync_active_fights_to_peer"):
+			current_world.sync_active_fights_to_peer(peer_id)
 	else:
 		print("GameManager(Server): Fehler - Die aktuelle Scene hat keine Spawn Funktion!")
 

@@ -1,0 +1,157 @@
+extends Node
+
+signal fight_ended_for_peer(peer_id: int)
+
+@export var fight_scene: PackedScene
+
+@onready var fight_layer: Node = get_parent().get_node("FightLayer")
+
+var is_fight_active: bool = false
+var peers_in_fight: Dictionary = {}
+
+
+func start_fight_for_peer(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	peers_in_fight[peer_id] = true
+	rpc_start_fight.rpc(peer_id)
+
+
+func end_fight_for_peer(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	if peers_in_fight.has(peer_id):
+		peers_in_fight[peer_id] = false
+	rpc_end_fight_for_peer.rpc(peer_id)
+
+
+func end_fight() -> void:
+	if not multiplayer.is_server():
+		return
+	rpc_end_fight.rpc()
+
+
+func sync_active_fights_to_peer(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var count := 0
+	for child in fight_layer.get_children():
+		if child.has_method("get_owner_peer_id") and child.get("participants") != null:
+			var participants_list: Array = []
+			for p in child.participants:
+				participants_list.append(p)
+			rpc_create_existing_fight.rpc_id(peer_id, child.get_owner_peer_id(), participants_list)
+			count += 1
+	if count > 0:
+		print("FightManager: Sync von ", count, " aktiven Fight(s) an Peer ", peer_id, " gesendet.")
+
+
+func is_peer_in_fight(peer_id: int) -> bool:
+	return peers_in_fight.has(peer_id) and peers_in_fight[peer_id]
+
+
+@rpc("any_peer", "call_local")
+func rpc_start_fight(owner_peer_id: int) -> void:
+	if fight_scene == null:
+		push_error("FightManager: fight_scene ist nicht gesetzt.")
+		return
+	var fight_instance: Node2D = fight_scene.instantiate()
+	fight_instance.name = "Fight_%d" % owner_peer_id
+	if fight_instance.has_method("set_owner_peer_id"):
+		fight_instance.set_owner_peer_id(owner_peer_id)
+	fight_layer.add_child(fight_instance)
+	is_fight_active = true
+	peers_in_fight[owner_peer_id] = true
+	print("FightManager: Fight wurde instanziert (RPC).")
+
+
+@rpc("any_peer")
+func rpc_create_existing_fight(owner_peer_id: int, participants_list: Array) -> void:
+	if fight_scene == null:
+		push_error("FightManager: rpc_create_existing_fight - fight_scene ist null.")
+		return
+	print("FightManager: Erstelle bestehenden Fight ", owner_peer_id, " lokal (Join-in-Progress).")
+	var fight_instance: Node2D = fight_scene.instantiate()
+	fight_instance.name = "Fight_%d" % owner_peer_id
+	if fight_instance.has_method("set_owner_peer_id"):
+		fight_instance.set_owner_peer_id(owner_peer_id)
+	if fight_instance.has_method("set_participants"):
+		fight_instance.set_participants(participants_list)
+	fight_layer.add_child(fight_instance)
+	is_fight_active = true
+	for p in participants_list:
+		peers_in_fight[int(p)] = true
+
+
+@rpc("any_peer")
+func rpc_request_start_fight() -> void:
+	if not multiplayer.is_server():
+		return
+	var requester_id := multiplayer.get_remote_sender_id()
+	print("FightManager: Start-Fight-Request von Peer ", requester_id)
+	start_fight_for_peer(requester_id)
+
+
+@rpc("any_peer")
+func rpc_request_join_fight() -> void:
+	if not multiplayer.is_server():
+		return
+	var requester_id := multiplayer.get_remote_sender_id()
+	_process_join_request(requester_id)
+
+
+func _process_join_request(requester_id: int) -> void:
+	print("FightManager: Join-Fight-Request von Peer ", requester_id)
+	for child in fight_layer.get_children():
+		if child.has_method("add_participant"):
+			if child.has_method("has_participant") and child.has_participant(requester_id):
+				print("FightManager: Peer ", requester_id, " ist bereits Teilnehmer.")
+				return
+			var owner_id := 0
+			if child.has_method("get_owner_peer_id"):
+				owner_id = child.get_owner_peer_id()
+			rpc_sync_join_fight.rpc(owner_id, requester_id)
+			print("FightManager: Peer ", requester_id, " als Teilnehmer hinzugefügt.")
+			return
+	print("FightManager: Kein aktiver Fight zum Beitreten gefunden.")
+
+
+@rpc("any_peer", "call_local")
+func rpc_sync_join_fight(owner_peer_id: int, peer_id: int) -> void:
+	peers_in_fight[peer_id] = true
+	for child in fight_layer.get_children():
+		if child.has_method("get_owner_peer_id") and child.get_owner_peer_id() == owner_peer_id:
+			child.add_participant(peer_id)
+			return
+
+
+@rpc("any_peer")
+func rpc_request_end_fight_for_peer() -> void:
+	if not multiplayer.is_server():
+		return
+	var requester_id := multiplayer.get_remote_sender_id()
+	print("FightManager: End-Fight-Request von Peer ", requester_id)
+	end_fight_for_peer(requester_id)
+
+
+@rpc("any_peer", "call_local")
+func rpc_end_fight() -> void:
+	if fight_layer.get_child_count() == 0:
+		return
+	for child in fight_layer.get_children():
+		child.queue_free()
+	is_fight_active = false
+	peers_in_fight.clear()
+
+
+@rpc("any_peer", "call_local")
+func rpc_end_fight_for_peer(peer_id: int) -> void:
+	for child in fight_layer.get_children():
+		if child.has_method("get_owner_peer_id") and child.get_owner_peer_id() == peer_id:
+			child.queue_free()
+	if peers_in_fight.has(peer_id):
+		peers_in_fight[peer_id] = false
+	if fight_layer.get_child_count() == 0:
+		is_fight_active = false
+	fight_ended_for_peer.emit(peer_id)
+	print("FightManager: Fight beendet (RPC).")

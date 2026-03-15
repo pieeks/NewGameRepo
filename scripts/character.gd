@@ -7,6 +7,9 @@ extends CharacterBody2D
 @export var movement_type : MovementController.ControllerType
 @export var free_camera_pan_speed: float = 400.0
 
+# Im Grid-Modus: Kamera-Position in Weltkoordinaten (nur WASD ändert sie, Character-Bewegung nicht).
+var _grid_camera_world_pos: Vector2 = Vector2.ZERO
+
 # Netzwerk-sichtbarer Animationszustand (wird später repliziert).
 # Interner Speicher (_net_anim_name) + Property mit Setter/Getters.
 var _net_anim_name: StringName = StringName()
@@ -66,6 +69,8 @@ func _configure_for_fight_if_needed() -> void:
 	var grid_movement_node := movement_controller.get_node_or_null("GridMovement")
 	if grid_movement_node != null:
 		grid_movement_node.set("grid_manager", grid_mgr)
+	# Kamera-Ziel in Weltkoordinaten auf aktuelle Position setzen
+	_grid_camera_world_pos = global_position
 
 
 func _process(delta: float) -> void:
@@ -74,8 +79,10 @@ func _process(delta: float) -> void:
 	if not camera_2d or not camera_2d.is_current():
 		return
 	
-	# Im Grid-Modus (Fight): Kamera frei mit WASD schwenkbar
+	# Im Grid-Modus (Fight): Kamera bleibt in Weltkoordinaten, nur WASD schwenkt
 	if movement_controller.current_type == MovementController.ControllerType.GRID:
+		if _grid_camera_world_pos == Vector2.ZERO:
+			_grid_camera_world_pos = global_position
 		var move := Vector2.ZERO
 		if Input.is_action_pressed("move_left"):
 			move.x -= 1.0
@@ -86,8 +93,8 @@ func _process(delta: float) -> void:
 		if Input.is_action_pressed("move_down"):
 			move.y += 1.0
 		if move != Vector2.ZERO:
-			move = move.normalized() * free_camera_pan_speed * delta
-			camera_2d.position += move
+			_grid_camera_world_pos += move.normalized() * free_camera_pan_speed * delta
+		camera_2d.global_position = _grid_camera_world_pos
 	else:
 		# Sonst: Kamera folgt dem Character (Offset zurück auf 0)
 		camera_2d.position = Vector2.ZERO
