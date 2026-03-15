@@ -67,6 +67,8 @@ func _configure_for_fight_if_needed() -> void:
 	var grid_mgr := fight_root.get_node_or_null("GridManager") as Node2D
 	if grid_mgr == null:
 		return
+	# Sichtbarkeit an Fight-Node koppeln (Nicht-Teilnehmer sehen Battle-Character nicht)
+	visible = fight_root.visible
 	movement_type = MovementController.ControllerType.GRID
 	movement_controller.current_type = MovementController.ControllerType.GRID
 	var grid_movement_node := movement_controller.get_node_or_null("GridMovement")

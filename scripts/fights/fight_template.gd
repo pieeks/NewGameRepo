@@ -12,6 +12,12 @@ signal fight_ready_to_remove(owner_peer_id: int)
 var participants: Array[int] = []
 var _is_ending: bool = false
 
+
+func _sync_player_container_visibility() -> void:
+	for child in player_container.get_children():
+		child.visible = visible
+
+
 func _ready() -> void:
 	var my_id := multiplayer.get_unique_id()
 	print("TestFight: _ready() auf Peer", my_id, " owner_peer_id =", owner_peer_id)
@@ -25,6 +31,7 @@ func _ready() -> void:
 		visible = true
 	else:
 		visible = false
+	_sync_player_container_visibility()
 
 	if owner_peer_id == 0:
 		owner_peer_id = my_id
@@ -56,10 +63,10 @@ func add_participant(peer_id: int) -> void:
 	if not participants.has(peer_id):
 		participants.append(peer_id)
 	print("fight_template: add_participant(", peer_id, "), participants jetzt: ", participants)
-	
 	# Wer gerade beitritt, soll sofort Fight sehen (Kamera übernimmt der Character beim Spawn)
 	if peer_id == multiplayer.get_unique_id():
 		visible = true
+		_sync_player_container_visibility()
 	
 	# Nur Host spawnt Battle-Character; einen Frame verzögern, damit Client die Fight-Szene hat (Join-in-Progress).
 	if multiplayer.is_server() and peer_id != owner_peer_id:
@@ -166,3 +173,4 @@ func _notify_fight_manager_peer_left(peer_id: int) -> void:
 @rpc("any_peer", "call_local")
 func rpc_notify_fight_ending() -> void:
 	visible = false
+	_sync_player_container_visibility()
