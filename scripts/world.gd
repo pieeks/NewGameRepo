@@ -81,6 +81,7 @@ func rpc_start_fight(owner_peer_id: int) -> void:
 		return
 
 	var fight_instance: Node2D = fight_scene.instantiate()
+	fight_instance.name = "Fight_%d" % owner_peer_id
 	# Peer-ID in die Fight-Szene übergeben, falls das Script sie unterstützt.
 	if fight_instance.has_method("set_owner_peer_id"):
 		fight_instance.set_owner_peer_id(owner_peer_id)
@@ -105,6 +106,43 @@ func rpc_request_start_fight() -> void:
 	var requester_id := multiplayer.get_remote_sender_id()
 	print("testWorld: Start-Fight-Request von Peer ", requester_id)
 	start_fight_for_peer(requester_id)
+
+
+@rpc("any_peer")
+func rpc_request_join_fight() -> void:
+	if not multiplayer.is_server():
+		return
+	
+	var requester_id := multiplayer.get_remote_sender_id()
+	print("world: Join-Fight-Request von Peer ", requester_id)
+	
+	for child in $FightLayer.get_children():
+		if child.has_method("add_participant"):
+			if child.has_method("has_participant") and child.has_participant(requester_id):
+				print("world: Peer ", requester_id, " ist bereits Teilnehmer.")
+				return
+			
+			var owner_id := 0
+			if child.has_method("get_owner_peer_id"):
+				owner_id = child.get_owner_peer_id()
+			
+			# Nur RPC auslösen – add_participant (und ggf. Spawn) passiert in rpc_sync_join_fight auf allen Peers
+			rpc_sync_join_fight.rpc(owner_id, requester_id)
+			print("world: Peer ", requester_id, " als Teilnehmer hinzugefügt.")
+			return
+	
+	print("world: Kein aktiver Fight zum Beitreten gefunden.")
+
+
+@rpc("any_peer", "call_local")
+func rpc_sync_join_fight(owner_peer_id: int, peer_id: int) -> void:
+	# Auf allen Peers: Teilnehmehrliste und Movement-Block aktualisieren
+	peers_in_fight[peer_id] = true
+	
+	for child in $FightLayer.get_children():
+		if child.has_method("get_owner_peer_id") and child.get_owner_peer_id() == owner_peer_id:
+			child.add_participant(peer_id)
+			return
 
 
 @rpc("any_peer")
@@ -202,12 +240,18 @@ func _on_fight_menu_start_fight() -> void:
 
 
 func _on_fight_menu_join_fight() -> void:
-	# Für den Moment: Menü nur schließen.
-	# Der eigentliche Join passiert, sobald der Host einen Fight startet,
-	# da rpc_start_fight() auf allen Peers ausgeführt wird.
+	#Menü schließen
 	if fight_menu and is_instance_valid(fight_menu):
 		fight_menu.queue_free()
 		fight_menu = null
+	
+	var my_id := multiplayer.get_unique_id()
+
+	if multiplayer.is_server():
+		print("world: Host móchte einem Fight beitreten (Peer ID: ", my_id, ")")
+	else:
+		#Client: Anfrage an den Host senden
+		rpc_id(1, "rpc_request_join_fight")
 
 
 func _on_fight_menu_leave_fight() -> void:

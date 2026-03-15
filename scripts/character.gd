@@ -5,6 +5,7 @@ extends CharacterBody2D
 @onready var movement_controller: Node2D = $MovementController
 
 @export var movement_type : MovementController.ControllerType
+@export var free_camera_pan_speed: float = 400.0
 
 # Netzwerk-sichtbarer Animationszustand (wird später repliziert).
 # Interner Speicher (_net_anim_name) + Property mit Setter/Getters.
@@ -44,6 +45,52 @@ func _ready() -> void:
 		z_index = 0
 	
 	movement_controller.current_type = movement_type
+
+	# Wenn dieser Character unter einer Fight-Szene (FightTemplate) hängt, auf allen Peers
+	# selbst als Battle-Character konfigurieren (Grid + GridManager).
+	_configure_for_fight_if_needed()
+
+
+func _configure_for_fight_if_needed() -> void:
+	var container := get_parent()
+	if container == null:
+		return
+	var fight_root := container.get_parent()
+	if fight_root == null or not fight_root.has_method("get_owner_peer_id"):
+		return
+	var grid_mgr := fight_root.get_node_or_null("GridManager") as Node2D
+	if grid_mgr == null:
+		return
+	movement_type = MovementController.ControllerType.GRID
+	movement_controller.current_type = MovementController.ControllerType.GRID
+	var grid_movement_node := movement_controller.get_node_or_null("GridMovement")
+	if grid_movement_node != null:
+		grid_movement_node.set("grid_manager", grid_mgr)
+
+
+func _process(delta: float) -> void:
+	if not is_multiplayer_authority():
+		return
+	if not camera_2d or not camera_2d.is_current():
+		return
+	
+	# Im Grid-Modus (Fight): Kamera frei mit WASD schwenkbar
+	if movement_controller.current_type == MovementController.ControllerType.GRID:
+		var move := Vector2.ZERO
+		if Input.is_action_pressed("move_left"):
+			move.x -= 1.0
+		if Input.is_action_pressed("move_right"):
+			move.x += 1.0
+		if Input.is_action_pressed("move_up"):
+			move.y -= 1.0
+		if Input.is_action_pressed("move_down"):
+			move.y += 1.0
+		if move != Vector2.ZERO:
+			move = move.normalized() * free_camera_pan_speed * delta
+			camera_2d.position += move
+	else:
+		# Sonst: Kamera folgt dem Character (Offset zurück auf 0)
+		camera_2d.position = Vector2.ZERO
 
 
 func play_animation(anim_name: String) -> void:
