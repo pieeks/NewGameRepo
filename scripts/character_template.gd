@@ -4,8 +4,10 @@ extends CharacterBody2D
 @onready var animation_player: AnimationPlayer = get_node_or_null("CharacterVisuals/AnimationPlayer")
 @onready var movement_controller: Node2D = $MovementController
 
-@export var movement_type : MovementController.ControllerType
+@export var movement_type: MovementController.ControllerType
 @export var free_camera_pan_speed: float = 400.0
+@export var is_player_controlled: bool = true
+@export var controlled_by_peer_id: int = -1
 
 # Im Grid-Modus: Kamera-Position in Weltkoordinaten (nur WASD ändert sie, Character-Bewegung nicht).
 var _grid_camera_world_pos: Vector2 = Vector2.ZERO
@@ -24,7 +26,7 @@ var net_anim_name: StringName:
 		_net_anim_name = value
 		
 		# Debug: Anzeigen, wann und wo sich der Netz-Animationszustand ändert.
-		var peer_id := multiplayer.get_unique_id() if multiplayer else -1
+		var peer_id: int = multiplayer.get_unique_id() if multiplayer else -1
 		print("Character(", name, ") peer=", peer_id, " is_authority=", is_multiplayer_authority(),
 			" net_anim_name: ", old_value, " -> ", value)
 		
@@ -36,11 +38,12 @@ var net_anim_name: StringName:
 
 
 func _enter_tree() -> void:
-	set_multiplayer_authority(name.to_int())
+	if name.is_valid_int():
+		set_multiplayer_authority(name.to_int())
 
 
 func _ready() -> void:
-	if is_multiplayer_authority():
+	if is_player_controlled and is_multiplayer_authority():
 		camera_2d.make_current()
 		z_index = 1
 	else:
@@ -73,8 +76,16 @@ func _configure_for_fight_if_needed() -> void:
 	_grid_camera_world_pos = global_position
 
 
+func get_controlled_peer_id() -> int:
+	if controlled_by_peer_id >= 0:
+		return controlled_by_peer_id
+	if name.is_valid_int():
+		return name.to_int()
+	return -1
+
+
 func _process(delta: float) -> void:
-	if not is_multiplayer_authority():
+	if not is_player_controlled or not is_multiplayer_authority():
 		return
 	if not camera_2d or not camera_2d.is_current():
 		return

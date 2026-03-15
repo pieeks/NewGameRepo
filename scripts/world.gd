@@ -36,6 +36,7 @@ func spawn_character_to_stage(peer_id: int, data: Dictionary) -> void:
 	var player_instance: Node = player_scene.instantiate()
 	player_instance.name = str(peer_id)
 	player_instance.set_multiplayer_authority(peer_id)
+	player_instance.set("controlled_by_peer_id", peer_id)
 	player_instance.position = Vector2(randf_range(-150, 150), randf_range(-150, 150))
 	player_container.add_child(player_instance, true)
 

@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://bpv5w7cpt1i77"]
+[gd_scene format=3 uid="uid://dq4r2r13enjen"]
 
-[ext_resource type="Script" uid="uid://dpm18go8i0gd0" path="res://scripts/character.gd" id="1_6k5wm"]
+[ext_resource type="Script" uid="uid://e7rvgdbkirv6" path="res://scripts/character_template.gd" id="1_6k5wm"]
 [ext_resource type="PackedScene" uid="uid://d4b5qv5atlkhq" path="res://scene/movement_controller.tscn" id="2_d7vt2"]
 [ext_resource type="PackedScene" uid="uid://8c5ojwtr0l73" path="res://scene/state_controller.tscn" id="3_6k5wm"]
 [ext_resource type="PackedScene" uid="uid://4edfqg1bhdcr" path="res://scene/character_visuals.tscn" id="4_ylg48"]
@@ -19,7 +19,7 @@ properties/2/path = NodePath(".:net_anim_name")
 properties/2/spawn = true
 properties/2/replication_mode = 1
 
-[node name="Character" type="CharacterBody2D" unique_id=2123511907]
+[node name="CharacterTemplate" type="CharacterBody2D" unique_id=2123511907]
 collision_mask = 0
 script = ExtResource("1_6k5wm")
 

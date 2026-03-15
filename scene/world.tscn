@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://b2m03o7jo2axq"]
 
 [ext_resource type="Script" uid="uid://b1vmqo80vik12" path="res://scripts/world.gd" id="1_emkrx"]
-[ext_resource type="Script" path="res://scripts/fight_manager.gd" id="6_fmgr"]
-[ext_resource type="PackedScene" uid="uid://bpv5w7cpt1i77" path="res://scene/character.tscn" id="2_0tg4p"]
+[ext_resource type="PackedScene" path="res://scene/character_template.tscn" id="2_0tg4p"]
 [ext_resource type="PackedScene" uid="uid://f3ufcdsu1xr2" path="res://scene/fight/fight_template.tscn" id="3_hcb8y"]
 [ext_resource type="PackedScene" uid="uid://dpnxj50xyugb2" path="res://scene/ui/fight_menu.tscn" id="4_y3jn2"]
 [ext_resource type="PackedScene" uid="uid://dpv175xcbqgya" path="res://scene/lobby.tscn" id="5_yur6x"]
+[ext_resource type="Script" uid="uid://nrfg8whi57t" path="res://scripts/fight_manager.gd" id="6_fmgr"]
 
 [node name="World" type="Node2D" unique_id=1911214217]
 script = ExtResource("1_emkrx")
@@ -15,7 +15,7 @@ fight_menu_scene = ExtResource("4_y3jn2")
 [node name="PlayerContainer" type="Node2D" parent="." unique_id=564631683]
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1945847825]
-_spawnable_scenes = PackedStringArray("uid://bpv5w7cpt1i77")
+_spawnable_scenes = PackedStringArray("res://scene/character_template.tscn")
 spawn_path = NodePath("../PlayerContainer")
 spawn_limit = 2
 

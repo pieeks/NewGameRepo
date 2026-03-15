@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cdjh5323g1m1m" path="res://scripts/fights/fight_template.gd" id="1_grjjh"]
 [ext_resource type="PackedScene" uid="uid://cp1b66emov86f" path="res://scene/fight/grid_manager.tscn" id="2_m88po"]
-[ext_resource type="PackedScene" uid="uid://bpv5w7cpt1i77" path="res://scene/character.tscn" id="3_m217x"]
+[ext_resource type="PackedScene" uid="uid://dq4r2r13enjen" path="res://scene/character_template.tscn" id="3_m217x"]
 
 [node name="FightTemplate" type="Node2D" unique_id=1842162479]
 script = ExtResource("1_grjjh")
@@ -11,7 +11,7 @@ battle_character_scene = ExtResource("3_m217x")
 [node name="GridManager" parent="." unique_id=2075479075 instance=ExtResource("2_m88po")]
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=472675401]
-_spawnable_scenes = PackedStringArray("uid://bpv5w7cpt1i77")
+_spawnable_scenes = PackedStringArray("uid://dq4r2r13enjen")
 spawn_path = NodePath("../PlayerContainer")
 
 [node name="PlayerContainer" type="Node" parent="." unique_id=1121923086]

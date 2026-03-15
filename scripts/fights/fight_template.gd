@@ -79,14 +79,15 @@ func _spawn_battle_character(peer_id: int) -> void:
 	
 	player_container.add_child(character)
 	
-	# Character-Kamera bleibt an – character.gd setzt für Authority make_current(), sonst enabled = false
+	# Character-Kamera bleibt an – character_template.gd setzt für Authority make_current(), sonst enabled = false
 	
-	_configure_battle_character(character)
+	_configure_battle_character(character, peer_id)
 
 
-func _configure_battle_character(character: CharacterBody2D) -> void:
+func _configure_battle_character(character: CharacterBody2D, controlled_peer_id: int) -> void:
 	# Sicherstellen, dass der Character im Grid-Modus läuft
 	character.movement_type = MovementController.ControllerType.GRID
+	character.controlled_by_peer_id = controlled_peer_id
 	
 	var controller: MovementController = character.get_node_or_null("MovementController")
 	if controller == null:

@@ -20,7 +20,7 @@ func _physics_process(delta: float) -> void:
 	var world := get_tree().current_scene
 	if world and current_type == ControllerType.PLAYER:
 		if world.has_method("is_peer_in_fight"):
-			var peer_id := character.name.to_int()
+			var peer_id: int = character.get_controlled_peer_id()
 			if world.is_peer_in_fight(peer_id):
 				return
 	
