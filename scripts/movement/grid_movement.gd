@@ -8,12 +8,12 @@ extends Node
 var current_path: PackedVector2Array = []
 var target_point: Vector2 = Vector2.ZERO
 var is_moving: bool = false
-var grid_manager: Node2D
+var grid_manager: GridManager
 
 
 func _ready() -> void:
 	if grid_manager_path != NodePath():
-		grid_manager = get_node(grid_manager_path) as Node2D
+		grid_manager = get_node(grid_manager_path) as GridManager
 	else:
 		grid_manager = null
 

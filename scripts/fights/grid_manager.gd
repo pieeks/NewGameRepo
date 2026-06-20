@@ -1,3 +1,4 @@
+class_name GridManager
 extends Node2D
 ## Hex-Grid (AStar2D), Punkte und Nachbarn; [method get_action_path] für Bewegung.
 
