@@ -1,6 +1,6 @@
 extends Node
+## Speicherort und geladene Character-Daten für Lobby/Spawn.
 
-#const
 const SAVE_DIR = "user://saves/"
 
 var current_character_data: Dictionary = {}
@@ -33,7 +33,7 @@ func get_available_savegames() -> Array:
 					savegames.append({
 						"file": file_name,
 						"name": data.get("name", "Unbekannt"),
-						"level": data.get("levl", 1)
+						"level": data.get("level", data.get("levl", 1))
 					})
 				
 				file_name = dir.get_next()
@@ -41,7 +41,7 @@ func get_available_savegames() -> Array:
 	return savegames
 
 
-func load_character(file_name: String) ->void:
+func load_character(file_name: String) -> void:
 	var file_path: String = SAVE_DIR + file_name
 	if not FileAccess.file_exists(file_path):
 		print("PlayerSession: Fehler - Speicherstand nicht gefunden.")

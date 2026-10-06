@@ -1,4 +1,5 @@
 extends Node
+## Top-Down-Freemove: Input-Vektor, velocity, move_and_slide.
 
 @export var move_speed: float = 200.0
 

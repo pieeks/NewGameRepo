@@ -1,18 +1,13 @@
 extends Control
+## Lobby: Host/Join/Leave, lädt erstes Savegame, verbindet Netzwerk-Signale.
 
-
-func _ready(): 
+func _ready():
 	multiplayer.connected_to_server.connect(_on_connected_ok)
 	multiplayer.connection_failed.connect(_on_connected_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
-	
 	var available_saves: Array = PlayerSession.get_available_savegames()
-	print("Lobby: Gefundene Savegames: ", available_saves)
-	
 	if available_saves.size() > 0:
-		print("lobby.gd: available_saves größer 0")
-		var selected_file: String = available_saves[0]["file"]
-		PlayerSession.load_character(selected_file)
+		PlayerSession.load_character(available_saves[0]["file"])
 
 func _on_start_button_button_down() -> void:
 	NetworkManager.host_game()

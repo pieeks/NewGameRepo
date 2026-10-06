@@ -12,5 +12,4 @@ func enter(_previous_state) -> void:
 
 func physics_update(_delta: float) -> void:
 	if character.velocity.length() > 0.1:
-		#Wir rufen den Manager an und fordern den Wechsel
 		state_controller.request_state_change(&"Move")

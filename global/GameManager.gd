@@ -1,21 +1,18 @@
 extends Node
+## Steuert Szenenwechsel (Lobby/World) und reagiert auf Netzwerk-Ereignisse.
+## Host spawnt Spieler nach Handshake; bei Verbindungsverlust Rückkehr ins Menü.
 
-#Consts
-const WORLD_SCENE_PATH = "res://scene/testWorld.tscn"
-const MAIN_MENUE_PATH = "res://scene/lobby.tscn"
+const WORLD_SCENE_PATH = "res://scene/world.tscn"
+const MAIN_MENU_PATH = "res://scene/lobby.tscn"
 
 
 func _ready():
 	NetworkManager.server_started.connect(_on_server_start)
-	NetworkManager.connection_successful.connect(_on_conncetion_successful)
+	NetworkManager.connection_successful.connect(_on_connection_successful)
 	NetworkManager.connection_lost.connect(_on_connection_lost)
-	NetworkManager.handshake_recieved.connect(_on_network_handshake_received)
+	NetworkManager.handshake_received.connect(_on_network_handshake_received)
 	
 	multiplayer.peer_disconnected.connect(_on_player_disconnected)
-
-# =================================================================
-# 🌍 ALLGEMEINE / CLIENT FUNKTIONEN (Für jeden zugänglich)
-# =================================================================
 
 func notify_world_is_ready() -> void:
 	print("GameManager: Die Welt meldet sich bereit!")
@@ -24,35 +21,28 @@ func notify_world_is_ready() -> void:
 		print("GameManager: Ich bin der Host, spawn mich selbst.")
 		_process_spawn_command(1, PlayerSession.current_character_data)
 	else:
-		print("GameManager: Ich bin Client, sende Handeshake...")
+		print("GameManager: Ich bin Client, sende Handshake...")
 		NetworkManager.send_handshake(PlayerSession.current_character_data)
 
 
-#Reaction of Singals
-func _on_server_start() -> void: 
-	print("GameManger: Server läuft. Starte Spiel für Host....")
+func _on_server_start() -> void:
+	print("GameManager: Server läuft. Starte Spiel für Host....")
 	_change_scene(WORLD_SCENE_PATH)
 
 
-func _on_conncetion_successful() -> void:
+func _on_connection_successful() -> void:
 	print("GameManager: Verbindung steht. Starte Spiel für Client....")
 	_change_scene(WORLD_SCENE_PATH)
 
 
-func _on_connection_lost() -> void: 
+func _on_connection_lost() -> void:
 	print("GameManager: Verbindung weg. Zurück ins Menü....")
-	_change_scene(MAIN_MENUE_PATH)
+	_change_scene(MAIN_MENU_PATH)
 
 
 
-#Help Func
-func _change_scene(path:String) -> void:
+func _change_scene(path: String) -> void:
 	get_tree().change_scene_to_file.call_deferred(path)
-
-
-# =================================================================
-# 🖥️ SERVER ONLY FUNKTIONEN 
-# =================================================================
 
 
 func _on_network_handshake_received(peer_id: int ,data: Dictionary) -> void:
@@ -71,6 +61,8 @@ func _process_spawn_command(peer_id: int, data: Dictionary) -> void:
 	var current_world: Node = get_tree().current_scene
 	if current_world.has_method("spawn_character_to_stage"):
 		current_world.spawn_character_to_stage(peer_id, data)
+		if current_world.has_method("sync_active_fights_to_peer"):
+			current_world.sync_active_fights_to_peer(peer_id)
 	else:
 		print("GameManager(Server): Fehler - Die aktuelle Scene hat keine Spawn Funktion!")
 

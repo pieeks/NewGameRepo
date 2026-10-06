@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://b2m03o7jo2axq"]
+[gd_scene format=3 uid="uid://ww3vdmjotjri"]
 
-[ext_resource type="Script" uid="uid://b1vmqo80vik12" path="res://scripts/test_world.gd" id="1_wysc5"]
+[ext_resource type="Script" path="res://scripts/test_world.gd" id="1_wysc5"]
 [ext_resource type="PackedScene" uid="uid://dpv175xcbqgya" path="res://scene/lobby.tscn" id="2_muc3x"]
-[ext_resource type="PackedScene" uid="uid://bpv5w7cpt1i77" path="res://scene/character.tscn" id="2_tj50u"]
+[ext_resource type="PackedScene" path="res://scene/character.tscn" id="2_tj50u"]
 
 [node name="TestWorld" type="Node2D" unique_id=1911214217]
 script = ExtResource("1_wysc5")
@@ -11,7 +11,7 @@ player_scene = ExtResource("2_tj50u")
 [node name="PlayerContainer" type="Node2D" parent="." unique_id=564631683]
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1945847825]
-_spawnable_scenes = PackedStringArray("uid://bpv5w7cpt1i77")
+_spawnable_scenes = PackedStringArray("res://scene/character.tscn")
 spawn_path = NodePath("../PlayerContainer")
 spawn_limit = 2
 
